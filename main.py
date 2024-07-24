@@ -153,7 +153,8 @@ def bad_exit(parser: ArgumentParser):
 if __name__ == '__main__':
     prog = 'Proxy Checker'
     description = 'Show detail about proxies'
-    file_help = 'A text file with list of new lines separated proxies. \nFormatted: [IP]:[PORT]'
+    file_help = '''A text file with list of new lines separated proxies.
+    Formatted: [IP]:[PORT]'''
     out_help = 'A path to save working proxies.'
     parser = ArgumentParser(prog=prog, description=description)
     parser.add_argument('-f', '--file', required=True, nargs=1, help=file_help)
