@@ -1,0 +1,6 @@
+services:
+  proxychecker:
+    build: .
+    command: ["-f", "./data/proxies.txt"]
+    volumes:
+      - ./data:/app/data
