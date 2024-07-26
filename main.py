@@ -2,7 +2,6 @@ import pycurl
 from io import BytesIO
 import re
 import random
-import json
 from argparse import ArgumentParser
 from sys import exit
 from os import path, getcwd
@@ -153,9 +152,12 @@ def worker_check_proxy(proxies: Queue):
         proxy = proxies.get()
         print(f'[+] checking: {proxy}')
         checked_proxy = checker.check_proxy(proxy, check_country=False)
-        if checked_proxy:
+        if checked_proxy and checked_proxy['anonymity'] != 'Transparent':
             protocol = checked_proxy['protocols'][-1]
-            working_proxies.put(f'{protocol}://{proxy}')
+            if protocol == 'socks5':
+                working_proxies.put(f'{protocol}h://{proxy}')
+            else:
+                working_proxies.put(f'{protocol}://{proxy}')
         proxies.task_done()
 
 
@@ -178,11 +180,10 @@ if __name__ == '__main__':
     if args.file and len(args.file) > 0 and path.isfile(args.file[0]):
         proxies_file = args.file[0]
     else:
-        print(f'bad proxy file path: {args.file}')
         bad_exit(parser)
 
     if args.output and len(args.output) > 0:
-        output_file = args.output[0]
+        output_file = path.join(args.output[0])
     else:
         output_file = path.join(getcwd(), 'data', 'output.txt')
 
@@ -190,16 +191,20 @@ if __name__ == '__main__':
     proxies = Queue()
     working_proxies = Queue()
     proxies_path = path.join(getcwd(), proxies_file)
-    print(f'proxies path: {proxies_path}')
+
     with open(proxies_path, 'r') as proxy_file:
         lines = proxy_file.readlines()
         [proxies.put(line.strip()) for line in lines]
 
     print('[+] Starting proxy checking...')
+
     for _ in range(50):
         worker = Thread(target=worker_check_proxy, daemon=True, args=[proxies])
         worker.start()
-    # for proxy in proxies:
-    #     print(f'[+] checking: {proxy}')
+
     proxies.join()
-    print(f'results: {list(working_proxies.queue)}')
+
+    with open(output_file, 'w') as working_file:
+        working_file.write('\n'.join(list(working_proxies.queue)))
+
+    print('[+] Results writen to file.')
