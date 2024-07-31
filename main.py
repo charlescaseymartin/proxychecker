@@ -153,7 +153,7 @@ def worker_check_proxy(proxies: Queue):
         print(f'[+] checking: {proxy}')
         checked_proxy = checker.check_proxy(proxy, check_country=False)
         is_anon = checked_proxy and checked_proxy['anonymity'] != 'Transparent'
-        is_fast = checked_proxy and checked_proxy['timeout'] < 300
+        is_fast = checked_proxy and checked_proxy['timeout'] < 500
         if is_anon and is_fast:
             protocol = checked_proxy['protocols'][-1]
             if protocol == 'socks5':
